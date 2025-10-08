@@ -10,6 +10,7 @@ dependencies = [
     "langchain-openai>=0.3.35",
     "langchain-tavily>=0.2.12",
     "langgraph>=0.6.8",
+    "nest-asyncio>=1.6.0",
     "python-dotenv>=1.1.1",
     "rich>=14.1.0",
 ]

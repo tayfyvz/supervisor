@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph
 from langgraph.types import RunnableConfig
-from ai_launchpad.langgraph_module.multi_agent.supervisor.supervisor import graph as supervisor_graph, SupervisorState
+from supervisor import graph as supervisor_graph, SupervisorState
 from langchain_core.messages import HumanMessage, AIMessageChunk
 from rich.console import Console
 from rich.panel import Panel
@@ -12,6 +12,40 @@ load_dotenv()
 def get_responsive_width(console: Console) -> int:
     """Get responsive width with margins for panels."""
     return min(120, console.size.width - 4) if console.size.width > 10 else 80
+
+
+async def run_graph_once(
+        input: SupervisorState,
+        graph: StateGraph,
+        console: Console,
+        **kwargs
+):
+    """Run the graph once without streaming."""
+    result = await graph.ainvoke(input=input, **kwargs)
+
+    # Display final messages in panels
+    AGENT_STYLES = {
+        'researcher': {'color': 'cyan', 'emoji': '🔬', 'name': 'Researcher'},
+        'copywriter': {'color': 'magenta', 'emoji': '✍️', 'name': 'Copywriter'},
+        'supervisor': {'color': 'green', 'emoji': '🎯', 'name': 'Supervisor'},
+    }
+
+    for message in result.get("messages", []):
+        if hasattr(message, "name") and message.name in AGENT_STYLES:
+            style = AGENT_STYLES[message.name]
+        else:
+            style = AGENT_STYLES["supervisor"]
+
+        panel = Panel(
+            message.content.strip(),
+            title=f"{style['emoji']} {style['name']}",
+            border_style=style['color'],
+            title_align="left",
+            padding=(1, 2),
+            width=get_responsive_width(console)
+        )
+        console.print(panel)
+        console.print()
 
 
 async def stream_graph_responses(
@@ -190,8 +224,8 @@ async def main():
                 messages=[HumanMessage(content=user_input)]
             )
 
-            await stream_graph_responses(graph_input, supervisor_graph, console, config=config)
-
+            # await stream_graph_responses(graph_input, supervisor_graph, console, config=config)
+            await run_graph_once(graph_input, supervisor_graph, console, config=config)
     except Exception as e:
         console.print(f"[red]Error: {type(e).__name__}: {str(e)}[/red]")
         raise

@@ -139,3 +139,4 @@ graph = builder.compile()
 # Visualize the graph
 # from IPython.display import Image
 # Image(graph.get_graph().draw_mermaid_png())
+# print(graph.get_graph(xray=True).draw_mermaid())
