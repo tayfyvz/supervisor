@@ -1,4 +1,9 @@
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from backend.core.config import settings
+from backend.routers import post, job
+from backend.db.database import create_tables
 from langgraph.graph import StateGraph
 from langgraph.types import RunnableConfig
 from supervisor import graph as supervisor_graph, SupervisorState
@@ -7,7 +12,25 @@ from rich.console import Console
 from rich.panel import Panel
 
 load_dotenv()
+create_tables()
+app = FastAPI(
+    title="Supervisor",
+    description="api to generate posts",
+    version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(post.router, prefix=settings.API_PREFIX)
+app.include_router(job.router, prefix=settings.API_PREFIX)
 
 def get_responsive_width(console: Console) -> int:
     """Get responsive width with margins for panels."""
@@ -234,9 +257,12 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     import nest_asyncio
+    import uvicorn
 
-    nest_asyncio.apply()
-    asyncio.run(main())
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    #
+    # nest_asyncio.apply()
+    # asyncio.run(main())
 
 # Example prompts
 # write a linkedin post on the top AI tools that small businesses and entrepreneurs need to be using to scale their businesses. include real-world examples and case studies where businesses are using these tools to scale their business with real numbers. include a call to action at the end for readers to follow me for more actionable playbooks on how to generate real value for their business.
