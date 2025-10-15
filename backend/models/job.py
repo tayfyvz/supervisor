@@ -9,7 +9,7 @@ class PostJob(Base):
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(String, unique=True, index=True)
     session_id = Column(String, index=True)
-    theme = Column(String)
+    topic = Column(String)
     status = Column(String)
     post_id = Column(Integer, nullable=True)
     error = Column(String, nullable=True)

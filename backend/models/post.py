@@ -19,7 +19,9 @@ class PostNode(Base):
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey('posts.id'), index=True)
     content = Column(String)
-    is_blog = Column(Boolean, default=False)
-    is_linkedin = Column(Boolean, default=False)
+    is_root = Column(Boolean, default=False)
+    is_ending = Column(Boolean, default=False)
+    options = Column(JSON, default=list)  # Store options as JSON
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     post = relationship("Post", back_populates="nodes")

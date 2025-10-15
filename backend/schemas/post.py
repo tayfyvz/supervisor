@@ -1,37 +1,39 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
 
-class PostOptionsSchema(BaseModel):
-    title: str
-    node_id: Optional[int] = None
+class PostOptionSchema(BaseModel):
+    text: str
+    node_id: int
 
 class PostNodeBase(BaseModel):
     content: str
-    is_blog: bool = False
-    is_linkedin: bool = False
+    is_root: bool = False
+    is_ending: bool = False
+    options: List[PostOptionSchema] = []
 
 class CompletePostNodeResponse(PostNodeBase):
     id: int
-    options: List[PostOptionsSchema] = []
+    created_at: datetime
+    
     class Config:
         from_attributes = True
 
 class PostBase(BaseModel):
     title: str
-    section_id: Optional[int] = None
+    session_id: str
 
     class Config:
         from_attributes = True
 
 class CreatePostRequest(BaseModel):
-    theme: str
+    topic: str
 
 class CompletePostResponse(PostBase):
     id: int
     created_at: datetime
-    root_node: CompletePostNodeResponse
-    all_nodes: Dict[int, CompletePostNodeResponse]
+    root_node: Optional[CompletePostNodeResponse] = None
+    all_nodes: Dict[int, CompletePostNodeResponse] = {}
 
     class Config:
         from_attributes = True

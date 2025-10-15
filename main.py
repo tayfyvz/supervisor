@@ -6,12 +6,17 @@ from backend.routers import post, job
 from backend.db.database import create_tables
 from langgraph.graph import StateGraph
 from langgraph.types import RunnableConfig
+from post_generator_agent import graph as post_generator_graph, PostGeneratorState
 from supervisor import graph as supervisor_graph, SupervisorState
 from langchain_core.messages import HumanMessage, AIMessageChunk
 from rich.console import Console
 from rich.panel import Panel
 
 load_dotenv()
+
+# Import all models to ensure they are registered with SQLAlchemy
+from backend.models.job import PostJob
+from backend.models.post import Post, PostNode
 create_tables()
 app = FastAPI(
     title="Supervisor",
@@ -48,6 +53,7 @@ async def run_graph_once(
 
     # Display final messages in panels
     AGENT_STYLES = {
+        'PostGenerator': {'color': 'blue', 'emoji': '🚀', 'name': 'Post Generator'},
         'researcher': {'color': 'cyan', 'emoji': '🔬', 'name': 'Researcher'},
         'copywriter': {'color': 'magenta', 'emoji': '✍️', 'name': 'Copywriter'},
         'supervisor': {'color': 'green', 'emoji': '🎯', 'name': 'Supervisor'},
@@ -90,6 +96,7 @@ async def stream_graph_responses(
     """
     # Agent styling configuration
     AGENT_STYLES = {
+        'PostGenerator': {'color': 'blue', 'emoji': '🚀', 'name': 'Post Generator'},
         'researcher': {'color': 'cyan', 'emoji': '🔬', 'name': 'Researcher'},
         'copywriter': {'color': 'magenta', 'emoji': '✍️', 'name': 'Copywriter'},
         'supervisor': {'color': 'green', 'emoji': '🎯', 'name': 'Supervisor'},
@@ -224,7 +231,7 @@ async def main():
 
         # Welcome panel with responsive width
         welcome_panel = Panel(
-            "Multi-Agent Supervisor with Subgraphs\nType 'exit' or 'quit' to stop",
+            "Multi-Agent Interactive Post Generator\nType 'exit' or 'quit' to stop\n\nRequest an interactive post on any theme!",
             title="Social Media Content Creator",
             border_style="blue",
             title_align="center",
@@ -243,12 +250,13 @@ async def main():
                 console.print("\n[yellow]Exit command received. Goodbye! 👋[/yellow]\n")
                 break
 
-            graph_input = SupervisorState(
+            # Use PostGenerator as the main entry point
+            graph_input = PostGeneratorState(
                 messages=[HumanMessage(content=user_input)]
             )
 
-            # await stream_graph_responses(graph_input, supervisor_graph, console, config=config)
-            await run_graph_once(graph_input, supervisor_graph, console, config=config)
+            # await stream_graph_responses(graph_input, post_generator_graph, console, config=config)
+            await run_graph_once(graph_input, post_generator_graph, console, config=config)
     except Exception as e:
         console.print(f"[red]Error: {type(e).__name__}: {str(e)}[/red]")
         raise

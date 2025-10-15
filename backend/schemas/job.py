@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 class PostJobBase(BaseModel):
-    theme: str
+    topic: str
 
 class PostJobResponse(BaseModel):
     job_id: str

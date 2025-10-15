@@ -81,6 +81,32 @@ async def generate_blog_post(
     return f"The blog post has been generated and saved to {filename}"
 
 
+@tool
+async def present_path_options(
+        options: list,
+        question: str = "How would you like the post to flow?",
+):
+    """Present path options to the user for how the post should flow.
+
+    Args:
+        options: List of path options for the user to choose from.
+        question: The question to ask the user about their choice.
+
+    Returns:
+        A string indicating that options have been presented to the user.
+    """
+    # Format the options for display
+    options_text = "\n".join([f"{i+1}. {option}" for i, option in enumerate(options)])
+    
+    return f"""
+{question}
+
+{options_text}
+
+Please select one of the options above. The system will wait for your choice before continuing.
+"""
+
+
 llm = ChatOpenAI(
     name="CopyWriter",
     model="gpt-5-mini-2025-08-07",
@@ -90,7 +116,8 @@ llm = ChatOpenAI(
 tools = [
     review_research_reports,
     generate_linkedin_post,
-    generate_blog_post
+    generate_blog_post,
+    present_path_options
 ]
 llm_with_tools = llm.bind_tools(tools)
 
